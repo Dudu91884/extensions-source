@@ -30,9 +30,8 @@ import uy.kohesive.injekt.api.get
 import kotlin.time.Instant
 
 @Source
-class GodOfDeath(
-    override val lang: String = "id",
-) : KeiSource(), ConfigurableSource {
+class GodOfDeath : KeiSource(), ConfigurableSource {
+
     // 1. SharedPreferences untuk simpan Custom Domain/API
     private val preferences by lazy {
         Injekt.get<Application>().getSharedPreferences("source_$id", 0)
