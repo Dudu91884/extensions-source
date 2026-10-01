@@ -20,11 +20,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Build APK God of Death
-        run: ./gradlew :extensions:id:shinigami:assembleRelease
+        run: ./gradlew :src:id:shinigami:assembleRelease
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: god-of-death-apk
           path: src/id/shinigami/build/outputs/apk/release/*.apk
-          
