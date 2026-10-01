@@ -42,14 +42,10 @@ class GodOfDeath(
     private val preferences by lazy {
         Injekt.get<Application>().getSharedPreferences("source_$id", 0)
     }
-
-    // 3. Base URL Dinamis (Website Utama)
-    override val baseUrl: String
-        get() = preferences.getString(MAINDOMAIN_PREF, DEFAULT_MAINDOMAIN)!.removeSuffix("/")
-
-    // 4. API URL Dinamis (Server API)
-    private val apiUrl: String
-        get() = preferences.getString(APIURL_PREF, DEFAULT_APIURL)!!.removeSuffix("/")
+    
+    override val baseUrl: String get() = preferences.getString(MAINDOMAIN_PREF, DEFAULT_MAINDOMAIN)!.removeSuffix("/")
+    
+    private val apiUrl: String get() = preferences.getString(APIURL_PREF, DEFAULT_APIURL)!.removeSuffix("/")
 
     private val apiHeaders: Headers
         get() = headersBuilder()
@@ -57,6 +53,7 @@ class GodOfDeath(
             .add("DNT", "1")
             .add("Sec-GPC", "1")
             .build()
+
 
     override fun OkHttpClient.Builder.configureClient(): OkHttpClient.Builder = rateLimit(3)
 
