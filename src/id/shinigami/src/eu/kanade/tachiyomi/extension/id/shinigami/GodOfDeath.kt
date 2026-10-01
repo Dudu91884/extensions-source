@@ -35,16 +35,19 @@ class GodOfDeath(
     override val id: Long = 3411809758861089969L,
 ) : KeiSource(), ConfigurableSource {
 
-    // 1. SharedPreferences untuk simpan Custom Domain/API
+    // 1. Properti Wajib Source
+    override val name = "God of Death"
+
+    // 2. SharedPreferences untuk simpan Custom Domain/API
     private val preferences by lazy {
         Injekt.get<Application>().getSharedPreferences("source_$id", 0)
     }
 
-    // 2. Base URL Dinamis (Website Utama)
+    // 3. Base URL Dinamis (Website Utama)
     override val baseUrl: String
-        get() = preferences.getString(MAINDOMAIN_PREF, DEFAULT_MAINDOMAIN)!!.removeSuffix("/")
+        get() = preferences.getString(MAINDOMAIN_PREF, DEFAULT_MAINDOMAIN)!.removeSuffix("/")
 
-    // 3. API URL Dinamis (Server API)
+    // 4. API URL Dinamis (Server API)
     private val apiUrl: String
         get() = preferences.getString(APIURL_PREF, DEFAULT_APIURL)!!.removeSuffix("/")
 
@@ -64,7 +67,7 @@ class GodOfDeath(
             key = MAINDOMAIN_PREF
             title = "Domain Website Utama"
             summary = "Ubah domain web jika situs berganti URL (Contoh: https://shinigami.asia)"
-            default = DEFAULT_MAINDOMAIN
+            setDefaultValue(DEFAULT_MAINDOMAIN) // 👈 Diubah dari default = menjadi setDefaultValue(...)
             dialogTitle = "Masukkan Domain Web Baru"
 
             setOnPreferenceChangeListener { _, newValue ->
@@ -77,7 +80,7 @@ class GodOfDeath(
             key = APIURL_PREF
             title = "Domain API Server"
             summary = "Ubah URL API jika server API diblokir (Contoh: https://api.shngm.io)"
-            default = DEFAULT_APIURL
+            setDefaultValue(DEFAULT_APIURL) // 👈 Diubah dari default = menjadi setDefaultValue(...)
             dialogTitle = "Masukkan URL API Baru"
 
             setOnPreferenceChangeListener { _, newValue ->
@@ -89,6 +92,7 @@ class GodOfDeath(
         screen.addPreference(domainPref)
         screen.addPreference(apiPref)
     }
+    
 
     // ====================== Popular ======================
 
