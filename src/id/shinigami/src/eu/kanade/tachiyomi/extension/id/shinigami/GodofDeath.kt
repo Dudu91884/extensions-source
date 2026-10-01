@@ -1,5 +1,9 @@
 package eu.kanade.tachiyomi.extension.id.shinigami
 
+import android.app.Application
+import androidx.preference.EditTextPreference
+import androidx.preference.PreferenceScreen
+import eu.kanade.tachiyomi.source.ConfigurableSource
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.Page
@@ -21,11 +25,25 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import kotlin.time.Instant
 
 @Source
-abstract class Shinigami : KeiSource() {
-    private val apiUrl = "https://api.shngm.io"
+class GodOfDeath : KeiSource(), ConfigurableSource {
+
+    // 1. SharedPreferences untuk simpan Custom Domain/API
+    private val preferences by lazy {
+        Injekt.get<Application>().getSharedPreferences("source_$id", 0)
+    }
+
+    // 2. Base URL Dinamis (Website Utama)
+    override val baseUrl: String
+        get() = preferences.getString(MAINDOMAIN_PREF, DEFAULT_MAINDOMAIN)!!.removeSuffix("/")
+
+    // 3. API URL Dinamis (Server API)
+    private val apiUrl: String
+        get() = preferences.getString(APIURL_PREF, DEFAULT_APIURL)!!.removeSuffix("/")
 
     private val apiHeaders: Headers
         get() = headersBuilder()
@@ -35,6 +53,39 @@ abstract class Shinigami : KeiSource() {
             .build()
 
     override fun OkHttpClient.Builder.configureClient(): OkHttpClient.Builder = rateLimit(3)
+
+    // ====================== Preference Settings (Gear) ======================
+
+    override fun setupPreferenceScreen(screen: PreferenceScreen) {
+        val domainPref = EditTextPreference(screen.context).apply {
+            key = MAINDOMAIN_PREF
+            title = "Domain Website Utama"
+            summary = "Ubah domain web jika situs berganti URL (Contoh: https://shinigami.asia)"
+            default = DEFAULT_MAINDOMAIN
+            dialogTitle = "Masukkan Domain Web Baru"
+
+            setOnPreferenceChangeListener { _, newValue ->
+                preferences.edit().putString(MAINDOMAIN_PREF, newValue as String).apply()
+                true
+            }
+        }
+
+        val apiPref = EditTextPreference(screen.context).apply {
+            key = APIURL_PREF
+            title = "Domain API Server"
+            summary = "Ubah URL API jika server API diblokir (Contoh: https://api.shngm.io)"
+            default = DEFAULT_APIURL
+            dialogTitle = "Masukkan URL API Baru"
+
+            setOnPreferenceChangeListener { _, newValue ->
+                preferences.edit().putString(APIURL_PREF, newValue as String).apply()
+                true
+            }
+        }
+
+        screen.addPreference(domainPref)
+        screen.addPreference(apiPref)
+    }
 
     // ====================== Popular ======================
 
@@ -108,7 +159,6 @@ abstract class Shinigami : KeiSource() {
     override fun getMangaUrl(manga: SManga): String = "$baseUrl/series/${manga.url}"
 
     override suspend fun getMangaByUrl(url: HttpUrl): SManga? {
-        if (url.host != "shinigami.asia" && !url.host.endsWith(".shinigami.asia")) return null
         val firstSegment = url.pathSegments.firstOrNull()
         if (firstSegment != "series") return null
         val id = url.pathSegments.getOrNull(1)?.takeIf { it.isNotBlank() } ?: return null
@@ -222,5 +272,13 @@ abstract class Shinigami : KeiSource() {
             .headers(imageHeaders)
             .get()
             .build()
+    }
+
+    companion object {
+        private const val MAINDOMAIN_PREF = "overrideBaseUrl"
+        private const val DEFAULT_MAINDOMAIN = "https://shinigami.asia"
+
+        private const val APIURL_PREF = "overrideApiUrl"
+        private const val DEFAULT_APIURL = "https://api.shngm.io"
     }
 }
