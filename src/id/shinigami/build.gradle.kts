@@ -5,7 +5,7 @@ plugins {
 }
 
 keiyoushi {
-    name = "Shinigami"
+    name = "God of Death"
     versionCode = 82
     contentWarning = ContentWarning.SAFE
     libVersion = "1.6"
